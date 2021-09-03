@@ -37,6 +37,7 @@ class HomeFragment : Fragment() {
     private lateinit var database: DatabaseReference
     private lateinit var noteList: ArrayList<UserData>
     private lateinit var noteAdapter: NoteAdapter
+    private lateinit var TempArr: ArrayList<UserData>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,19 +76,18 @@ class HomeFragment : Fragment() {
         recyclerView.setHasFixedSize(true)
         recyclerView.layoutManager = layoutManager
         noteList = arrayListOf()
-        noteAdapter = NoteAdapter(noteList) { note -> showNoteDetails(note) }
-
+        TempArr = arrayListOf()
+        noteAdapter = NoteAdapter(TempArr) { note -> showNoteDetails(note) }
+        recyclerView.adapter = noteAdapter
     }
 
     private fun implement() {
         // Sorting button
         sortingBtn.setOnClickListener {
-            Log.d("Click: ", "Success1")
             val popup = PopupMenu(this.context, sortingBtn)
             popup.inflate(R.menu.pop_up_menu)
             popup.setOnMenuItemClickListener {
                 if(it.title == "Time") {
-                    Log.d("Check: ", "Time")
                     sortingTime()
                 }
                 else if(it.title == "Priority") {
@@ -117,17 +117,24 @@ class HomeFragment : Fragment() {
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                val tempArr = ArrayList<UserData>()
-                noteAdapter = NoteAdapter(tempArr) { note -> showNoteDetails(note) }
+                TempArr.clear()
+                val searchText = newText!!.toLowerCase(Locale.getDefault())
+                if(searchText.isNotEmpty()) {
+                    noteList.forEach {
 
-                for (arr in noteList) {
-                    if (arr.title!!.toLowerCase(Locale.getDefault()).contains(newText.toString())) {
-                        Log.d("Search", "Successful")
-                        tempArr.add(arr)
+                        if(it.title?.toLowerCase(Locale.getDefault())!!.contains(searchText)) {
+
+                            TempArr.add(it)
+                        }
                     }
+                    recyclerView.adapter?.notifyDataSetChanged()
                 }
-                recyclerView.adapter = noteAdapter
-                noteAdapter.notifyDataSetChanged()
+                else {
+
+                    TempArr.clear()
+                    TempArr.addAll(noteList)
+                    recyclerView.adapter?.notifyDataSetChanged()
+                }
                 return true
             }
 
@@ -150,8 +157,9 @@ class HomeFragment : Fragment() {
                     }
                     val sortedList = noteList.sortedWith(compareBy({ it.priority }, { it.title }))
                     noteList.clear()
+                    noteAdapter.clear()
                     noteList.addAll(sortedList)
-                    recyclerView.adapter = noteAdapter
+                    TempArr.addAll(noteList)
                 }
             }
 
@@ -165,6 +173,7 @@ class HomeFragment : Fragment() {
         noteList.clear()
         noteAdapter.clear()
         noteList.addAll(sortedList)
+        TempArr.addAll(noteList)
     }
 
     private fun sortingPriority() {
@@ -172,6 +181,7 @@ class HomeFragment : Fragment() {
         noteList.clear()
         noteAdapter.clear()
         noteList.addAll(sortedList)
+        TempArr.addAll(noteList)
     }
 
     private fun sortingTitle() {
@@ -179,6 +189,7 @@ class HomeFragment : Fragment() {
         noteList.clear()
         noteAdapter.clear()
         noteList.addAll(sortedList)
+        TempArr.addAll(noteList)
     }
 
     /*@SuppressLint("ServiceCast")

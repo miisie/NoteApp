@@ -37,8 +37,8 @@
             android:layout_height="match_parent"
             android:layout_marginRight="10dp"
             android:background="@drawable/button_shape"
-            android:padding="16dp"
-            android:src="@drawable/ic_baseline_create_24"
+            android:padding="10dp"
+            android:src="@drawable/ic_baseline_more_horiz_24"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
