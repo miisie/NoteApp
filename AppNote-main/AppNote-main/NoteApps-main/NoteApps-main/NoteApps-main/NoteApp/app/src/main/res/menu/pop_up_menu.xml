@@ -7,12 +7,12 @@
     </item>
 
     <item
-        android:title="item_2"
+        android:title="Priority"
         android:id="@+id/item_2">
     </item>
 
     <item
-        android:title="item_3"
+        android:title="Title"
         android:id="@+id/item_3">
     </item>
 

@@ -10,7 +10,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
-import android.widget.*
+import android.widget.ImageView
+import android.widget.PopupMenu
+import android.widget.SearchView
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
@@ -23,12 +26,12 @@ import com.google.firebase.database.*
 import java.util.*
 import kotlin.collections.ArrayList
 
-class HomeFragment : Fragment(){
+class HomeFragment : Fragment() {
+
     private lateinit var sortingBtn: ImageView
     private lateinit var searchView: SearchView
     private lateinit var text: TextView
     private lateinit var addNoteBtn: FloatingActionButton
-    /*private var check : Boolean = false*/
     private lateinit var recyclerView: RecyclerView
     private lateinit var layoutManager: StaggeredGridLayoutManager
     private lateinit var database: DatabaseReference
@@ -44,7 +47,6 @@ class HomeFragment : Fragment(){
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_home, container, false)
     }
 
@@ -56,7 +58,6 @@ class HomeFragment : Fragment(){
         implement()
 
         getNoteData()
-
 
     }
 
@@ -81,12 +82,20 @@ class HomeFragment : Fragment(){
     private fun implement() {
         // Sorting button
         sortingBtn.setOnClickListener {
-            Log.d("Click: ","Success1")
+            Log.d("Click: ", "Success1")
             val popup = PopupMenu(this.context, sortingBtn)
             popup.inflate(R.menu.pop_up_menu)
             popup.setOnMenuItemClickListener {
-                sortingTime()
-                Log.d("Click: ","Success2")
+                if(it.title == "Time") {
+                    Log.d("Check: ", "Time")
+                    sortingTime()
+                }
+                else if(it.title == "Priority") {
+                    sortingPriority()
+                }
+                else {
+                    sortingTitle()
+                }
                 true
             }
             popup.show()
@@ -126,47 +135,66 @@ class HomeFragment : Fragment(){
     }
 
     private fun getNoteData() {
-       database = FirebaseDatabase
-           .getInstance("https://noteapp-b945c-default-rtdb.asia-southeast1.firebasedatabase.app")
-           .getReference("Note")
-       /* database =
-            FirebaseDatabase.getInstance("https://note-app-d7239-default-rtdb.asia-southeast1.firebasedatabase.app")
-                .getReference("Note")*/
-       database.addValueEventListener(object : ValueEventListener {
+        database = FirebaseDatabase
+            .getInstance("https://noteapp-b945c-default-rtdb.asia-southeast1.firebasedatabase.app")
+            .getReference("Note")
+        /*database =
+             FirebaseDatabase.getInstance("https://note-app-d7239-default-rtdb.asia-southeast1.firebasedatabase.app")
+                 .getReference("Note")*/
+        database.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()) {
                     for (userSnapshot in snapshot.children) {
                         val note = userSnapshot.getValue(UserData::class.java)
                         noteList.add(note!!)
                     }
-                    val sortedList = noteList.sortedWith(compareBy({it.priority},{it.title}))
+                    val sortedList = noteList.sortedWith(compareBy({ it.priority }, { it.title }))
                     noteList.clear()
                     noteList.addAll(sortedList)
                     recyclerView.adapter = noteAdapter
                 }
             }
+
             override fun onCancelled(error: DatabaseError) {
             }
         })
     }
 
     private fun sortingTime() {
-        noteList.sortByDescending { it.date }
-        recyclerView.adapter = noteAdapter
+        val sortedList = noteList.sortedWith(compareBy { it.date })
+        noteList.clear()
+        noteAdapter.clear()
+        noteList.addAll(sortedList)
     }
 
-    @SuppressLint("ServiceCast")
+    private fun sortingPriority() {
+        val sortedList = noteList.sortedWith(compareBy({it.priority},{it.title}))
+        noteList.clear()
+        noteAdapter.clear()
+        noteList.addAll(sortedList)
+    }
+
+    private fun sortingTitle() {
+        var sortedList = noteList.sortedWith(compareBy { it.title })
+        noteList.clear()
+        noteAdapter.clear()
+        noteList.addAll(sortedList)
+    }
+
+    /*@SuppressLint("ServiceCast")
     private fun closeSoftKeyboard(context: Context, v: View) {
         val iMm = context.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
         iMm.hideSoftInputFromWindow(v.windowToken, 0)
         v.clearFocus()
-    }
+    }*/
 
-    private fun showNoteDetails(note : UserData){
-        val intent = Intent(requireContext(),SingleNoteData::class.java)
-        intent.putExtra("title",note.title)
-        intent.putExtra("content",note.content)
-        intent.putExtra("priority",note.priority)
+    private fun showNoteDetails(note: UserData) {
+        val intent = Intent(requireContext(), SingleNoteData::class.java)
+        intent.putExtra("date", note.date)
+        intent.putExtra("title", note.title)
+        intent.putExtra("content", note.content)
+        intent.putExtra("priority", note.priority)
+        intent.putExtra("image",note.url)
         startActivity(intent)
     }
 }
