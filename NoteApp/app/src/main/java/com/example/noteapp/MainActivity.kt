@@ -16,6 +16,7 @@ class MainActivity : AppCompatActivity(){
     private lateinit var content: String
     private lateinit var priority: String
     private lateinit var image: String
+    private lateinit var date: String
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -34,22 +35,22 @@ class MainActivity : AppCompatActivity(){
             content = intent.getStringExtra("Content").toString()
             priority = intent.getStringExtra("Priority").toString()
             image = intent.getStringExtra("Image").toString()
+            date = intent.getStringExtra("Date").toString()
             packageData()
         }
     }
 
     private fun packageData(){
+        val addNote = AddNote()
         val data = Bundle().apply {
-            Log.d("title",intent.getStringExtra("Title").toString())
-            Log.d("content",intent.getStringExtra("Content").toString())
-            Log.d("priority",intent.getStringExtra("Priority").toString())
             putString("titlE",title)
             putString("contenT",content)
             putString("prioritY",priority)
+            putString("datE",date)
             putString("imagE",image)
         }
-        AddNote().arguments = data
-        addFragmentToActivity(supportFragmentManager, AddNote(), R.id.frame_layout_id)
+        addNote.arguments = data
+        addFragmentToActivity(supportFragmentManager, addNote, R.id.frame_layout_id)
     }
 
     private fun addFragmentToActivity(manager: FragmentManager, fragment: Fragment?, frameId: Int) {

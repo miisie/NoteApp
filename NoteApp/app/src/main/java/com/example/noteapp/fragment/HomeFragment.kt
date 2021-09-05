@@ -151,15 +151,18 @@ class HomeFragment : Fragment() {
         database.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()) {
+                    TempArr.clear()
+                    noteList.clear()
                     for (userSnapshot in snapshot.children) {
                         val note = userSnapshot.getValue(UserData::class.java)
                         noteList.add(note!!)
                     }
                     val sortedList = noteList.sortedWith(compareBy({ it.priority }, { it.title }))
                     noteList.clear()
+                    TempArr.clear()
                     noteAdapter.clear()
                     noteList.addAll(sortedList)
-                    TempArr.addAll(noteList)
+                    TempArr.addAll(sortedList)
                 }
             }
 

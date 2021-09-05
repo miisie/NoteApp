@@ -56,11 +56,13 @@ class SingleNoteData : AppCompatActivity() {
     }
 
     private fun NoteDetails(extras: Bundle){
-        extras.getString("image","")?.let { image ->
-            Glide.with(this)
-                .load(extras.getString("image","").toString())
-                .transform(CenterCrop())
-                .into(Image)
+        if(extras.getString("image","").toString() != "null"){
+            extras.getString("image","")?.let { image ->
+                Glide.with(this)
+                    .load(extras.getString("image","").toString())
+                    .transform(CenterCrop())
+                    .into(Image)
+            }
         }
         date.text = extras.getString("date","")
         title.text = extras.getString("title","")
@@ -73,7 +75,8 @@ class SingleNoteData : AppCompatActivity() {
             .putExtra("Title",title.text.toString())
             .putExtra("Content",content.text.toString())
             .putExtra("Priority",priority.text.toString())
-            /*.putExtra("Image",Image.toString())*/
+            .putExtra("Date",date.text.toString())
+            .putExtra("Image",extras.getString("image","").toString())
         )
     }
     private fun deleteData(title: String){

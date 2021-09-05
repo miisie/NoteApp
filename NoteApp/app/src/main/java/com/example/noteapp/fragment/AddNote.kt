@@ -9,6 +9,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.text.Editable
 import android.util.Log
 
 import androidx.fragment.app.Fragment
@@ -19,7 +20,13 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
+import com.bumptech.glide.Glide
+import com.bumptech.glide.TransitionOptions
+import com.bumptech.glide.load.resource.bitmap.CenterCrop
+import com.example.noteapp.MainActivity
 import com.example.noteapp.R
+import com.example.noteapp.SingleNoteData
 import com.example.noteapp.UserData
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
@@ -29,6 +36,7 @@ import com.google.firebase.storage.ktx.component1
 import com.google.firebase.storage.ktx.component2
 import com.google.firebase.storage.ktx.component3
 import com.google.firebase.storage.ktx.component4
+import kotlinx.android.synthetic.main.fragment_add_note.view.*
 import java.net.URI
 import java.net.URL
 import java.text.SimpleDateFormat
@@ -48,11 +56,11 @@ class AddNote : Fragment() {
     private lateinit var imageBtn: ImageView
     private lateinit var imageNote: ImageView
     private lateinit var imageUri : Uri
-    private val Url : String = ""
+    private lateinit var Url : String
+    private var CHECK : Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        check()
 
     }
 
@@ -69,6 +77,8 @@ class AddNote : Fragment() {
 
         init()
 
+        checkEditOrNew()
+
         implement()
 
         setPrior()
@@ -78,24 +88,25 @@ class AddNote : Fragment() {
         // submit button
 
         submitbtn.setOnClickListener {
-            //uplaod image
-            uploadImg()
+            if(!title.text.isNullOrEmpty() && title.text.isNotBlank()){
+                //uploadData
+                checkNewSaveOrEditSave()
 
-            //back to home
-            fragmentManager?.beginTransaction()?.apply {
-                replace(R.id.frame_layout_id, HomeFragment())
-                addToBackStack(null)
-                commit()
+                //back to home
+                fragmentManager?.beginTransaction()?.apply {
+                    replace(R.id.frame_layout_id, HomeFragment())
+                    addToBackStack(null)
+                    commit()
+                }
+            }
+            else {
+                title.error = "This fill cannot be blank"
             }
         }
 
         // back button
         backBtn.setOnClickListener {
-            fragmentManager?.beginTransaction()?.apply {
-                replace(R.id.frame_layout_id, HomeFragment())
-                addToBackStack(null)
-                commit()
-            }
+            backEditOrNew()
         }
 
         // add image
@@ -117,7 +128,7 @@ class AddNote : Fragment() {
             else {
                 pickImageFromGallery()
             }
-            imageNote.visibility = View.VISIBLE
+            /*imageNote.visibility = View.VISIBLE*/
         }
 
 
@@ -125,6 +136,8 @@ class AddNote : Fragment() {
 
     private fun init() {
         imageUri = Uri.EMPTY
+        Url = "null"
+        CHECK = false
         submitbtn = view?.findViewById(R.id.submitbtn)!!
         date = view?.findViewById(R.id.date)!!
         title = view?.findViewById(R.id.title)!!
@@ -142,12 +155,66 @@ class AddNote : Fragment() {
             .getReference("Note")*/
     }
 
-    private fun check(){
-        val bundle : String = arguments?.getString("prioritY").toString()
-        Log.d("check",bundle)
-        if (bundle != "null"){
-            Log.d("check2",bundle)
+    private fun checkEditOrNew() {
+        val bundle : Bundle? = arguments
+        if (bundle != null){
+            CHECK = true
+            title.text = Editable.Factory.getInstance().newEditable(bundle?.getString("titlE").toString())
+            /*title.setText(bundle?.getString("titlE").toString())*/
+            content.setText(bundle?.getString("contenT").toString())
+            priority.text = bundle?.getString("prioritY")
+            if(bundle?.getString("imagE").toString() != "null"){
+                bundle?.getString("imagE","").let{
+                    Glide.with(this)
+                        .load(bundle?.getString("imagE","").toString())
+                        .into(imageNote)
+                }
+            }
         }
+    }
+
+    private fun backEditOrNew(){
+        if(CHECK == false){
+            fragmentManager?.beginTransaction()?.apply {
+                replace(R.id.frame_layout_id, HomeFragment())
+                addToBackStack(null)
+                commit()
+            }
+        }
+        else{
+            backNoteDetails()
+        }
+    }
+
+    private fun backNoteDetails() {
+        val bundle : Bundle? = arguments
+        val intent = Intent(requireContext(), SingleNoteData::class.java)
+        intent.putExtra("date", bundle?.getString("datE").toString())
+        intent.putExtra("title", bundle?.getString("titlE").toString())
+        intent.putExtra("content", bundle?.getString("titlE").toString())
+        intent.putExtra("priority", bundle?.getString("prioritY").toString())
+        intent.putExtra("image",bundle?.getString("imagE").toString())
+        startActivity(intent)
+    }
+
+    private fun checkNewSaveOrEditSave(){
+        if(CHECK == false){
+            uploadImg(title.text.toString(),content.text.toString(),priority.text.toString(),date.text.toString())
+        }
+        else{
+            editData(title.text.toString(),content.text.toString(),priority.text.toString(),date.text.toString())
+        }
+    }
+
+    private fun editData(title: String, content :String, priority : String, date: String){
+        val bundle : Bundle? = arguments
+        if(title != bundle?.getString("titlE").toString()){
+            database.child(bundle?.getString("titlE").toString()).removeValue()
+        }
+        if (imageUri == Uri.EMPTY && bundle?.getString("imagE").toString() != "null"){
+            Url = bundle?.getString("imagE").toString()
+        }
+        uploadImg(title, content, priority, date)
     }
 
     private fun pickImageFromGallery() {
@@ -171,22 +238,21 @@ class AddNote : Fragment() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if(resultCode == Activity.RESULT_OK && requestCode == IMAGE_PICK_CODE) {
-            Log.d("picture","${data?.data}")
             imageUri = data?.data!!
             imageNote.setImageURI(imageUri)
         }
     }
 
     @SuppressLint("NewApi")
-    private fun uploadImg(){
+    private fun uploadImg(Title: String, Content :String, Priority : String, Date: String){
         val progressDialog = ProgressDialog(this.context)
         progressDialog.setMessage("Uploading..")
         progressDialog.setCancelable(false)
         progressDialog.show()
 
         if(imageUri == Uri.EMPTY){
-            val userData = UserData(date.text.toString(),title.text.toString(),content.text.toString(),priority.text.toString(),Url)
-            database.child(title.text.toString()).setValue(userData).addOnSuccessListener {
+            val userData = UserData(Date,Title,Content,Priority,Url)
+            database.child(Title).setValue(userData).addOnSuccessListener {
                 title.text.clear()
                 content.text.clear()
                 priority.text = "Level 1"
@@ -197,6 +263,7 @@ class AddNote : Fragment() {
             }
         }
         else{
+
             val formatter = SimpleDateFormat("YYYY_MM_dd_HH_mm_ss", Locale.getDefault())
             val now = Date()
             val filename = formatter.format(now)
@@ -207,7 +274,7 @@ class AddNote : Fragment() {
                 imageNote.setImageURI(null)
                 if(progressDialog.isShowing) progressDialog.dismiss()
                 it.storage.downloadUrl.addOnSuccessListener {
-                    val userData = UserData(date.text.toString(),title.text.toString(),content.text.toString(),priority.text.toString(),it.toString())
+                    val userData = UserData(Date,Title,Content,Priority,it.toString())
                     database.child(title.text.toString()).setValue(userData).addOnSuccessListener {
                         title.text.clear()
                         content.text.clear()
