@@ -1,4 +1,4 @@
-package com.example.noteapp.fragment
+    package com.example.noteapp.fragment
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -9,7 +9,6 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.text.Editable
 import android.util.Log
 
 import androidx.fragment.app.Fragment
@@ -18,27 +17,15 @@ import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
-import androidx.core.net.toUri
 import com.bumptech.glide.Glide
-import com.bumptech.glide.TransitionOptions
-import com.bumptech.glide.load.resource.bitmap.CenterCrop
-import com.example.noteapp.MainActivity
 import com.example.noteapp.R
-import com.example.noteapp.SingleNoteData
-import com.example.noteapp.UserData
+import com.example.noteapp.activity.SingleNoteData
+import com.example.noteapp.data.UserData
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
-import com.google.firebase.storage.ktx.component1
-import com.google.firebase.storage.ktx.component2
-import com.google.firebase.storage.ktx.component3
-import com.google.firebase.storage.ktx.component4
-import kotlinx.android.synthetic.main.fragment_add_note.view.*
-import java.net.URI
-import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -47,6 +34,7 @@ class AddNote : Fragment() {
     private val PERMISSION_CODE = 1001
 
     private lateinit var database : DatabaseReference
+    private lateinit var storageReference: StorageReference
     private lateinit var submitbtn : Button
     private lateinit var date : TextView
     private lateinit var title : EditText
@@ -57,6 +45,7 @@ class AddNote : Fragment() {
     private lateinit var imageNote: ImageView
     private lateinit var imageUri : Uri
     private lateinit var Url : String
+    private lateinit var imgName: String
     private var CHECK : Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -138,6 +127,7 @@ class AddNote : Fragment() {
         imageUri = Uri.EMPTY
         Url = "null"
         CHECK = false
+        imgName = "null"
         submitbtn = view?.findViewById(R.id.submitbtn)!!
         date = view?.findViewById(R.id.date)!!
         title = view?.findViewById(R.id.title)!!
@@ -147,6 +137,9 @@ class AddNote : Fragment() {
         imageBtn = view?.findViewById(R.id.add_image)!!
         imageNote = view?.findViewById(R.id.image_note)!!
         date.text = getCurrentDate()
+        storageReference = FirebaseStorage
+            .getInstance("gs://noteapp-b945c.appspot.com")
+            .getReference("image")
         database = FirebaseDatabase
             .getInstance("https://noteapp-b945c-default-rtdb.asia-southeast1.firebasedatabase.app")
             .getReference("Note")
@@ -159,8 +152,7 @@ class AddNote : Fragment() {
         val bundle : Bundle? = arguments
         if (bundle != null){
             CHECK = true
-            title.text = Editable.Factory.getInstance().newEditable(bundle?.getString("titlE").toString())
-            /*title.setText(bundle?.getString("titlE").toString())*/
+            title.setText(bundle?.getString("titlE").toString())
             content.setText(bundle?.getString("contenT").toString())
             priority.text = bundle?.getString("prioritY")
             if(bundle?.getString("imagE").toString() != "null"){
@@ -169,6 +161,7 @@ class AddNote : Fragment() {
                         .load(bundle?.getString("imagE","").toString())
                         .into(imageNote)
                 }
+                getImageName(bundle.getString("imagE","").toString())
             }
         }
     }
@@ -213,6 +206,13 @@ class AddNote : Fragment() {
         }
         if (imageUri == Uri.EMPTY && bundle?.getString("imagE").toString() != "null"){
             Url = bundle?.getString("imagE").toString()
+        }
+        if (imageUri != Uri.EMPTY && imgName != "null"){
+            storageReference.child(imgName).delete().addOnSuccessListener {
+                Toast.makeText(context,"Success Delete",Toast.LENGTH_SHORT).show()
+            }.addOnFailureListener {
+                Toast.makeText(context,"Fail Delete",Toast.LENGTH_SHORT).show()
+            }
         }
         uploadImg(title, content, priority, date)
     }
@@ -267,10 +267,7 @@ class AddNote : Fragment() {
             val formatter = SimpleDateFormat("YYYY_MM_dd_HH_mm_ss", Locale.getDefault())
             val now = Date()
             val filename = formatter.format(now)
-            val storageReference = FirebaseStorage
-                .getInstance("gs://noteapp-b945c.appspot.com")
-                .getReference("image/$filename")
-            storageReference.putFile(imageUri).addOnSuccessListener {
+            storageReference.child( "$filename").putFile(imageUri).addOnSuccessListener {
                 imageNote.setImageURI(null)
                 if(progressDialog.isShowing) progressDialog.dismiss()
                 it.storage.downloadUrl.addOnSuccessListener {
@@ -318,5 +315,9 @@ class AddNote : Fragment() {
         priority.setOnClickListener {
             popupMenu.show()
         }
+    }
+    private fun getImageName(imgUrl : String){
+        imgName = imgUrl.substringAfter('F',imgUrl).subSequence(0,19).toString()
+        Log.d("check 2",imgName)
     }
 }

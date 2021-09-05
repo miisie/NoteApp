@@ -1,28 +1,27 @@
-package com.example.noteapp
+package com.example.noteapp.adapter
 
 import android.annotation.SuppressLint
-import android.content.res.Resources
 import android.graphics.Color
-import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.example.noteapp.R
+import com.example.noteapp.data.UserData
 import kotlinx.android.synthetic.main.note_item.view.*
-import org.xmlpull.v1.XmlPullParser
 
 class NoteAdapter(private var noteList: ArrayList<UserData>,
                   private val onItemClick:(note : UserData) -> Unit
                   ): RecyclerView.Adapter<NoteAdapter.NoteViewHolder>() {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NoteAdapter.NoteViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NoteViewHolder {
         val view = LayoutInflater
             .from(parent.context)
             .inflate(R.layout.note_item, parent, false)
         return NoteViewHolder(view)
     }
 
-    override fun onBindViewHolder(holder: NoteAdapter.NoteViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: NoteViewHolder, position: Int) {
         holder.bind(noteList[position])
     }
 

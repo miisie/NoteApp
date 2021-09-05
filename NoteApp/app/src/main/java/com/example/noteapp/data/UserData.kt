@@ -1,4 +1,4 @@
-package com.example.noteapp
+package com.example.noteapp.data
 
 import android.net.Uri
 import java.net.URL

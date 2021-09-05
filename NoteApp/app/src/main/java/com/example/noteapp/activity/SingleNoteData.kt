@@ -1,20 +1,17 @@
-package com.example.noteapp
+package com.example.noteapp.activity
 
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.*
-import androidx.core.net.toUri
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
-import androidx.fragment.app.FragmentTransaction
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
-import com.example.noteapp.fragment.AddNote
-import com.example.noteapp.fragment.HomeFragment
+import com.example.noteapp.R
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
 import java.lang.Exception
 
 
@@ -28,6 +25,8 @@ class SingleNoteData : AppCompatActivity() {
     private lateinit var editButton: ImageView
     private lateinit var extras : Bundle
     private lateinit var database: DatabaseReference
+    private lateinit var storageReference: StorageReference
+    private lateinit var imgName: String
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_single_note_data)
@@ -45,6 +44,13 @@ class SingleNoteData : AppCompatActivity() {
         Image = findViewById(R.id.image_data)
         date = findViewById(R.id.date_data)
         editButton = findViewById(R.id.editbtn)
+        database = FirebaseDatabase
+            .getInstance("https://noteapp-b945c-default-rtdb.asia-southeast1.firebasedatabase.app")
+            .getReference("Note")
+        storageReference = FirebaseStorage
+            .getInstance("gs://noteapp-b945c.appspot.com")
+            .getReference("image")
+        imgName = "null"
     }
 
     private fun extra(extras: Bundle){
@@ -63,6 +69,8 @@ class SingleNoteData : AppCompatActivity() {
                     .transform(CenterCrop())
                     .into(Image)
             }
+            getImageName(extras.getString("image",""))
+
         }
         date.text = extras.getString("date","")
         title.text = extras.getString("title","")
@@ -71,7 +79,7 @@ class SingleNoteData : AppCompatActivity() {
     }
 
     private fun editFragment(){
-        startActivity(Intent(this,MainActivity::class.java)
+        startActivity(Intent(this, MainActivity::class.java)
             .putExtra("Title",title.text.toString())
             .putExtra("Content",content.text.toString())
             .putExtra("Priority",priority.text.toString())
@@ -79,12 +87,17 @@ class SingleNoteData : AppCompatActivity() {
             .putExtra("Image",extras.getString("image","").toString())
         )
     }
-    private fun deleteData(title: String){
-        database = FirebaseDatabase
-            .getInstance("https://noteapp-b945c-default-rtdb.asia-southeast1.firebasedatabase.app")
-            .getReference("Note").child(title)
-        database.removeValue()
-        startActivity(Intent(this,MainActivity::class.java))
+    private fun deleteData(title: String, imgName: String){
+        database.child(title).removeValue()
+        Log.d("check",imgName)
+        if(imgName != "null"){
+            storageReference.child(imgName).delete().addOnSuccessListener {
+                Toast.makeText(this,"Success Delete",Toast.LENGTH_SHORT).show()
+            }.addOnFailureListener {
+                Toast.makeText(this,"Fail Delete",Toast.LENGTH_SHORT).show()
+            }
+        }
+        startActivity(Intent(this, MainActivity::class.java))
     }
 
     private fun popUpEditDelete(){
@@ -95,7 +108,7 @@ class SingleNoteData : AppCompatActivity() {
                 editFragment()
             }
             else{
-                deleteData(title.text.toString())
+                deleteData(title.text.toString(),imgName)
             }
             true
         }
@@ -110,6 +123,10 @@ class SingleNoteData : AppCompatActivity() {
         finally{
             popupMenu.show()
         }
+    }
+
+    private fun getImageName(imgUrl : String){
+        imgName = imgUrl.substringAfter('F',imgUrl).subSequence(0,19).toString()
     }
 
     private fun implement(){

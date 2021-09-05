@@ -1,15 +1,10 @@
 package com.example.noteapp.fragment
 
-import android.annotation.SuppressLint
-import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
 import android.widget.PopupMenu
 import android.widget.SearchView
@@ -17,10 +12,10 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
-import com.example.noteapp.NoteAdapter
+import com.example.noteapp.adapter.NoteAdapter
 import com.example.noteapp.R
-import com.example.noteapp.SingleNoteData
-import com.example.noteapp.UserData
+import com.example.noteapp.activity.SingleNoteData
+import com.example.noteapp.data.UserData
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.database.*
 import java.util.*
