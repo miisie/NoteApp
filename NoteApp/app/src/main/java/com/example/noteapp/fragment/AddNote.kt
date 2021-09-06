@@ -7,6 +7,7 @@ import android.app.ProgressDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.opengl.Visibility
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -26,6 +27,7 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
+import java.lang.Exception
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -46,6 +48,7 @@ class AddNote : Fragment() {
     private lateinit var imageUri : Uri
     private lateinit var Url : String
     private lateinit var imgName: String
+    private lateinit var savedImgName: String
     private var CHECK : Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -100,24 +103,7 @@ class AddNote : Fragment() {
 
         // add image
         imageBtn.setOnClickListener {
-            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if(this.context?.let { it1 ->
-                        ContextCompat.checkSelfPermission(
-                            it1,
-                            Manifest.permission.READ_EXTERNAL_STORAGE
-                        )
-                    } == PackageManager.PERMISSION_DENIED) {
-                    val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
-                    requestPermissions(permissions,PERMISSION_CODE)
-                }
-                else {
-                    pickImageFromGallery()
-                }
-            }
-            else {
-                pickImageFromGallery()
-            }
-            /*imageNote.visibility = View.VISIBLE*/
+            chooseUploadOrDelete()
         }
 
 
@@ -128,6 +114,7 @@ class AddNote : Fragment() {
         Url = "null"
         CHECK = false
         imgName = "null"
+        savedImgName = "null"
         submitbtn = view?.findViewById(R.id.submitbtn)!!
         date = view?.findViewById(R.id.date)!!
         title = view?.findViewById(R.id.title)!!
@@ -146,6 +133,82 @@ class AddNote : Fragment() {
         /*database = FirebaseDatabase
             .getInstance("https://note-app-d7239-default-rtdb.asia-southeast1.firebasedatabase.app")
             .getReference("Note")*/
+    }
+
+    private fun chooseImage(){
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if(this.context?.let { it1 ->
+                    ContextCompat.checkSelfPermission(
+                        it1,
+                        Manifest.permission.READ_EXTERNAL_STORAGE
+                    )
+                } == PackageManager.PERMISSION_DENIED) {
+                val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+                requestPermissions(permissions,PERMISSION_CODE)
+            }
+            else {
+                pickImageFromGallery()
+            }
+        }
+        else {
+            pickImageFromGallery()
+        }
+    }
+
+    private fun chooseUploadOrDelete(){
+        val popupMenu = PopupMenu(context,imageBtn)
+        popupMenu.inflate(R.menu.image_handle)
+        popupMenu.setOnMenuItemClickListener {
+            if(it.title == "Upload"){
+                chooseImage()
+            }
+            else{
+                //edit
+                if(CHECK == true){
+                    //have image
+                    if(imgName != "null"){
+                        saveImgName(imgName)
+                        imageNote.setImageResource(0)
+                        imgName = "null"
+                    }
+                    //no image
+                    else{
+                        if(imageUri == Uri.EMPTY){
+                            Toast.makeText(context,"No Image To Delete",Toast.LENGTH_SHORT).show()
+                        }
+                        else{
+                            imageUri = Uri.EMPTY
+                            imageNote.setImageResource(0)
+                        }
+                    }
+                }
+                //new
+                else{
+                    if(imageUri == Uri.EMPTY){
+                        Toast.makeText(context,"No Image To Delete",Toast.LENGTH_SHORT).show()
+                    }
+                    else{
+                        imageUri = Uri.EMPTY
+                        imageNote.setImageResource(0)
+                    }
+                }
+            }
+            true
+        }
+        try {
+            val fieldMPopup = PopupMenu::class.java.getDeclaredField("mPopup")
+            fieldMPopup.isAccessible = true
+            val mPopup = fieldMPopup.get(popupMenu)
+            mPopup.javaClass.getDeclaredMethod("setForceShowIcon", Boolean::class.java).invoke(mPopup,true)
+        }catch(e: Exception){
+            Log.e("Main","Error showing menu icon",e)
+        }
+        finally{
+            popupMenu.show()
+        }
+    }
+    private fun saveImgName(imgName : String){
+        savedImgName  = imgName
     }
 
     private fun checkEditOrNew() {
@@ -195,20 +258,18 @@ class AddNote : Fragment() {
             uploadImg(title.text.toString(),content.text.toString(),priority.text.toString(),date.text.toString())
         }
         else{
-            editData(title.text.toString(),content.text.toString(),priority.text.toString(),date.text.toString())
+            editData(title.text.toString(),content.text.toString(),priority.text.toString(),date.text.toString(),savedImgName)
         }
     }
 
-    private fun editData(title: String, content :String, priority : String, date: String){
+    private fun editData(title: String, content :String, priority : String, date: String, savedImgName :String){
         val bundle : Bundle? = arguments
-        if(title != bundle?.getString("titlE").toString()){
-            database.child(bundle?.getString("titlE").toString()).removeValue()
-        }
-        if (imageUri == Uri.EMPTY && bundle?.getString("imagE").toString() != "null"){
+        database.child(bundle?.getString("titlE").toString()).removeValue()
+        if (imageUri == Uri.EMPTY && imgName != "null"){
             Url = bundle?.getString("imagE").toString()
         }
-        if (imageUri != Uri.EMPTY && imgName != "null"){
-            storageReference.child(imgName).delete().addOnSuccessListener {
+        if (savedImgName != "null"){
+            storageReference.child(savedImgName).delete().addOnSuccessListener {
                 Toast.makeText(context,"Success Delete",Toast.LENGTH_SHORT).show()
             }.addOnFailureListener {
                 Toast.makeText(context,"Fail Delete",Toast.LENGTH_SHORT).show()
@@ -220,6 +281,10 @@ class AddNote : Fragment() {
     private fun pickImageFromGallery() {
         val intent = Intent(Intent.ACTION_PICK)
         intent.type = "image/*"
+        if (imgName != "null"){
+            saveImgName(imgName)
+        }
+        imgName = "null"
         startActivityForResult(intent,IMAGE_PICK_CODE)
     }
 
@@ -318,6 +383,5 @@ class AddNote : Fragment() {
     }
     private fun getImageName(imgUrl : String){
         imgName = imgUrl.substringAfter('F',imgUrl).subSequence(0,19).toString()
-        Log.d("check 2",imgName)
     }
 }
