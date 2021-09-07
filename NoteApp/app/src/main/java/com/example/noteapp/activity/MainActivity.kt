@@ -1,7 +1,10 @@
 package com.example.noteapp.activity
 
+import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.MotionEvent
+import android.view.inputmethod.InputMethodManager
 
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
@@ -9,6 +12,7 @@ import androidx.fragment.app.FragmentTransaction
 import com.example.noteapp.R
 import com.example.noteapp.fragment.AddNote
 import com.example.noteapp.fragment.HomeFragment
+import com.example.noteapp.fragment.WaitingScreen
 
 
 class MainActivity : AppCompatActivity(){
@@ -29,6 +33,9 @@ class MainActivity : AppCompatActivity(){
 
         if(intent.getStringExtra("Title").toString() == "null"){
             addFragmentToActivity(supportFragmentManager, HomeFragment(), R.id.frame_layout_id)
+        }
+        else if(intent.getStringExtra("Title").toString() == "null"){
+            addFragmentToActivity(supportFragmentManager, WaitingScreen(), R.id.frame_layout_id)
         }
         else{
             title = intent.getStringExtra("Title").toString()
@@ -62,5 +69,13 @@ class MainActivity : AppCompatActivity(){
         transaction.commit()
     }
 
+    //close keyboard
+    override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
+        if (currentFocus != null) {
+            val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.hideSoftInputFromWindow(currentFocus!!.windowToken, 0)
+        }
+        return super.dispatchTouchEvent(ev)
+    }
 
 }

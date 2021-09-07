@@ -6,6 +6,7 @@ import android.app.Activity
 import android.app.ProgressDialog
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.net.Uri
 import android.opengl.Visibility
 import android.os.Build
@@ -37,12 +38,12 @@ class AddNote : Fragment() {
 
     private lateinit var database : DatabaseReference
     private lateinit var storageReference: StorageReference
-    private lateinit var submitbtn : Button
+    private lateinit var submitbtn : TextView
     private lateinit var date : TextView
     private lateinit var title : EditText
     private lateinit var content : EditText
     private lateinit var backBtn: ImageView
-    private lateinit var priority: Button
+    private lateinit var priority: TextView
     private lateinit var imageBtn: ImageView
     private lateinit var imageNote: ImageView
     private lateinit var imageUri : Uri
@@ -269,11 +270,7 @@ class AddNote : Fragment() {
             Url = bundle?.getString("imagE").toString()
         }
         if (savedImgName != "null"){
-            storageReference.child(savedImgName).delete().addOnSuccessListener {
-                Toast.makeText(context,"Success Delete",Toast.LENGTH_SHORT).show()
-            }.addOnFailureListener {
-                Toast.makeText(context,"Fail Delete",Toast.LENGTH_SHORT).show()
-            }
+            storageReference.child(savedImgName).delete()
         }
         uploadImg(title, content, priority, date)
     }
@@ -367,13 +364,16 @@ class AddNote : Fragment() {
             val id = it.itemId
             if(id == 0){
                 priority.text = "Level 1"
+                priority.setTextColor(Color.parseColor("#FFC0CB"))
             }
             else if (id == 1){
                 priority.text = "Level 2"
+                priority.setTextColor(Color.parseColor("#FFD580"))
             }
 
             else if (id == 2){
                 priority.text = "Level 3"
+                priority.setTextColor(Color.parseColor("#CBC3E3"))
             }
             false
         }

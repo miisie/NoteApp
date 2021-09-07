@@ -1,9 +1,13 @@
 package com.example.noteapp.activity
 
+import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.MotionEvent
+import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
@@ -76,6 +80,15 @@ class SingleNoteData : AppCompatActivity() {
         title.text = extras.getString("title","")
         content.text = extras.getString("content","")
         priority.text = extras.getString("priority","")
+        if(priority.text.toString() == "Level 1"){
+            priority.setTextColor(Color.parseColor("#FFC0CB"))
+        }
+        else if(priority.text.toString() == "Level 2"){
+            priority.setTextColor(Color.parseColor("#FFD580"))
+        }
+        else{
+            priority.setTextColor(Color.parseColor("#CBC3E3"))
+        }
     }
 
     private fun editFragment(){
@@ -91,11 +104,7 @@ class SingleNoteData : AppCompatActivity() {
         database.child(title).removeValue()
         Log.d("check",imgName)
         if(imgName != "null"){
-            storageReference.child(imgName).delete().addOnSuccessListener {
-                Toast.makeText(this,"Success Delete",Toast.LENGTH_SHORT).show()
-            }.addOnFailureListener {
-                Toast.makeText(this,"Fail Delete",Toast.LENGTH_SHORT).show()
-            }
+            storageReference.child(imgName).delete()
         }
         startActivity(Intent(this, MainActivity::class.java))
     }
@@ -132,12 +141,21 @@ class SingleNoteData : AppCompatActivity() {
     private fun implement(){
 
         backButton.setOnClickListener{
-            startActivity(Intent(this, MainActivity::class.java))
+            startActivity(Intent(this, MainActivity::class.java)
+                .putExtra("initState", false))
         }
 
         editButton.setOnClickListener{
             popUpEditDelete()
         }
+    }
+    //close keyboard
+    override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
+        if (currentFocus != null) {
+            val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.hideSoftInputFromWindow(currentFocus!!.windowToken, 0)
+        }
+        return super.dispatchTouchEvent(ev)
     }
 
 }

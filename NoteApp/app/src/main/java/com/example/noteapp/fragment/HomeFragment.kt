@@ -1,15 +1,17 @@
 package com.example.noteapp.fragment
 
+import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.PopupMenu
-import android.widget.SearchView
-import android.widget.TextView
+import android.view.inputmethod.InputMethodManager
+import android.widget.*
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.example.noteapp.adapter.NoteAdapter
@@ -23,7 +25,7 @@ import kotlin.collections.ArrayList
 
 class HomeFragment : Fragment() {
 
-    private lateinit var sortingBtn: ImageView
+    private lateinit var sortingBtn: Button
     private lateinit var searchView: SearchView
     private lateinit var text: TextView
     private lateinit var addNoteBtn: FloatingActionButton
@@ -190,12 +192,12 @@ class HomeFragment : Fragment() {
         TempArr.addAll(noteList)
     }
 
-    /*@SuppressLint("ServiceCast")
+    @SuppressLint("ServiceCast")
     private fun closeSoftKeyboard(context: Context, v: View) {
         val iMm = context.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
         iMm.hideSoftInputFromWindow(v.windowToken, 0)
         v.clearFocus()
-    }*/
+    }
 
     private fun showNoteDetails(note: UserData) {
         val intent = Intent(requireContext(), SingleNoteData::class.java)
