@@ -159,6 +159,13 @@ class AddNote : Fragment() {
     private fun chooseUploadOrDelete(){
         val popupMenu = PopupMenu(context,imageBtn)
         popupMenu.inflate(R.menu.image_handle)
+        val deleteButton = popupMenu.menu.findItem(R.id.Delete)
+        if(imgName == "null" && imageUri == Uri.EMPTY){
+            deleteButton.setVisible(false)
+        }
+        else{
+            deleteButton.setVisible(true)
+        }
         popupMenu.setOnMenuItemClickListener {
             if(it.title == "Upload"){
                 chooseImage()
@@ -351,7 +358,8 @@ class AddNote : Fragment() {
 
 
     private fun getCurrentDate():String{
-        val sdf = SimpleDateFormat("yyyy-MM-dd")
+        val sdf = SimpleDateFormat("yyyy/MM/dd")
+        Log.d("date",sdf.format(Date()).toString())
         return sdf.format(Date())
     }
 
