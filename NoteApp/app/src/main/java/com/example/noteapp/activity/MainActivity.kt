@@ -31,7 +31,7 @@ class MainActivity : AppCompatActivity(){
 
     private fun bundle(){
 
-        if(intent.getStringExtra("Title").toString() == "null"){
+        if(!intent.getBooleanExtra("initState",true)){
             addFragmentToActivity(supportFragmentManager, HomeFragment(), R.id.frame_layout_id)
         }
         else if(intent.getStringExtra("Title").toString() == "null"){
