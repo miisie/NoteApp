@@ -59,14 +59,14 @@ class NoteAdapter(private var noteList: ArrayList<UserData>,
     inner class NoteViewHolder(itemView: View) :RecyclerView.ViewHolder(itemView){
         @SuppressLint("ResourceAsColor")
         fun bind(note: UserData){
-            if(note.priority.toString().equals("Level 1")){
+            if(note.priority.toString().equals("Critical")){
                 itemView.setBackgroundColor(Color.parseColor("#000000"))
                 itemView.constraint_item.setBackgroundResource(R.drawable.background_item)
                 itemView.text_title.text = note.title
                 itemView.text_date.text = formatDate(note.date.toString())
 
             }
-            else if(note.priority.toString().equals("Level 2")){
+            else if(note.priority.toString().equals("High")){
                 itemView.setBackgroundColor(Color.parseColor("#000000"))
                 itemView.constraint_item.setBackgroundResource(R.drawable.background_item_2)
                 itemView.text_title.text = note.title

@@ -31,7 +31,6 @@ class WaitingScreen : Fragment() {
         handler.postDelayed({
             val fragmentTransaction = fragmentManager?.beginTransaction()
             fragmentTransaction?.replace(R.id.frame_layout_id, HomeFragment())
-            fragmentTransaction?.addToBackStack(null)
             fragmentTransaction?.commit()
         }, 1000)
     }

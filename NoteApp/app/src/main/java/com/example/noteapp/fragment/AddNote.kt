@@ -8,7 +8,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.net.Uri
-import android.opengl.Visibility
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -22,7 +21,6 @@ import android.widget.*
 import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
 import com.example.noteapp.R
-import com.example.noteapp.activity.SingleNoteData
 import com.example.noteapp.data.UserData
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
@@ -35,7 +33,6 @@ import java.util.*
 class AddNote : Fragment() {
     private val IMAGE_PICK_CODE = 1000
     private val PERMISSION_CODE = 1001
-
     private lateinit var database : DatabaseReference
     private lateinit var storageReference: StorageReference
     private lateinit var submitbtn : TextView
@@ -88,7 +85,6 @@ class AddNote : Fragment() {
                 //back to home
                 fragmentManager?.beginTransaction()?.apply {
                     replace(R.id.frame_layout_id, HomeFragment())
-                    addToBackStack(null)
                     commit()
                 }
             }
@@ -99,7 +95,7 @@ class AddNote : Fragment() {
 
         // back button
         backBtn.setOnClickListener {
-            backEditOrNew()
+            activity?.onBackPressed()
         }
 
         // add image
@@ -229,36 +225,12 @@ class AddNote : Fragment() {
             if(bundle?.getString("imagE").toString() != "null"){
                 bundle?.getString("imagE","").let{
                     Glide.with(this)
-                        .load(bundle?.getString("imagE","").toString())
+                        .load(bundle?.getString("imagE").toString())
                         .into(imageNote)
                 }
-                getImageName(bundle.getString("imagE","").toString())
+                getImageName(bundle.getString("imagE").toString())
             }
         }
-    }
-
-    private fun backEditOrNew(){
-        if(CHECK == false){
-            fragmentManager?.beginTransaction()?.apply {
-                replace(R.id.frame_layout_id, HomeFragment())
-                addToBackStack(null)
-                commit()
-            }
-        }
-        else{
-            backNoteDetails()
-        }
-    }
-
-    private fun backNoteDetails() {
-        val bundle : Bundle? = arguments
-        val intent = Intent(requireContext(), SingleNoteData::class.java)
-        intent.putExtra("date", bundle?.getString("datE").toString())
-        intent.putExtra("title", bundle?.getString("titlE").toString())
-        intent.putExtra("content", bundle?.getString("titlE").toString())
-        intent.putExtra("priority", bundle?.getString("prioritY").toString())
-        intent.putExtra("image",bundle?.getString("imagE").toString())
-        startActivity(intent)
     }
 
     private fun checkNewSaveOrEditSave(){
@@ -324,7 +296,7 @@ class AddNote : Fragment() {
             database.child(Title).setValue(userData).addOnSuccessListener {
                 title.text.clear()
                 content.text.clear()
-                priority.text = "Level 1"
+                priority.text = "Low"
                 if(progressDialog.isShowing) progressDialog.dismiss()
 
             }.addOnFailureListener {
@@ -365,23 +337,23 @@ class AddNote : Fragment() {
 
     private fun setPrior(){
         val popupMenu = PopupMenu(requireContext(),priority)
-        popupMenu.menu.add(Menu.NONE , 0, 0, "Level 1")
-        popupMenu.menu.add(Menu.NONE , 1, 1, "Level 2")
-        popupMenu.menu.add(Menu.NONE , 2, 2, "Level 3")
+        popupMenu.menu.add(Menu.NONE , 0, 0, "Critical")
+        popupMenu.menu.add(Menu.NONE , 1, 1, "High")
+        popupMenu.menu.add(Menu.NONE , 2, 2, "Normal")
         popupMenu.setOnMenuItemClickListener {
             val id = it.itemId
             if(id == 0){
-                priority.text = "Level 1"
+                priority.text = "Critical"
                 priority.setTextColor(Color.parseColor("#FFC0CB"))
             }
             else if (id == 1){
-                priority.text = "Level 2"
+                priority.text = "High"
                 priority.setTextColor(Color.parseColor("#FFD580"))
             }
 
             else if (id == 2){
-                priority.text = "Level 3"
-                priority.setTextColor(Color.parseColor("#CBC3E3"))
+                priority.text = "Normal"
+                priority.setTextColor(Color.parseColor("#90ee90"))
             }
             false
         }

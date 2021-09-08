@@ -3,7 +3,6 @@ package com.example.noteapp.fragment
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,12 +10,11 @@ import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import com.example.noteapp.PassData
 import com.example.noteapp.adapter.NoteAdapter
 import com.example.noteapp.R
-import com.example.noteapp.activity.SingleNoteData
 import com.example.noteapp.data.UserData
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.database.*
@@ -35,6 +33,7 @@ class HomeFragment : Fragment() {
     private lateinit var noteList: ArrayList<UserData>
     private lateinit var noteAdapter: NoteAdapter
     private lateinit var TempArr: ArrayList<UserData>
+    private lateinit var communicator: PassData
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,6 +59,9 @@ class HomeFragment : Fragment() {
     }
 
     private fun init() {
+
+        communicator = activity as PassData
+
         sortingBtn = view?.findViewById(R.id.sorting)!!
 
         searchView = view?.findViewById(R.id.search_view)!!
@@ -154,7 +156,7 @@ class HomeFragment : Fragment() {
                         val note = userSnapshot.getValue(UserData::class.java)
                         noteList.add(note!!)
                     }
-                    val sortedList = noteList.sortedWith(compareBy({ it.priority }, { it.title }))
+                    val sortedList = noteList.sortedWith(compareBy({ it.priority }, { it.date }))
                     noteList.clear()
                     TempArr.clear()
                     noteAdapter.clear()
@@ -177,7 +179,7 @@ class HomeFragment : Fragment() {
     }
 
     private fun sortingPriority() {
-        val sortedList = noteList.sortedWith(compareBy({it.priority},{it.title}))
+        val sortedList = noteList.sortedWith(compareBy({it.priority},{it.date}))
         noteList.clear()
         noteAdapter.clear()
         noteList.addAll(sortedList)
@@ -200,12 +202,6 @@ class HomeFragment : Fragment() {
     }
 
     private fun showNoteDetails(note: UserData) {
-        val intent = Intent(requireContext(), SingleNoteData::class.java)
-        intent.putExtra("date", note.date)
-        intent.putExtra("title", note.title)
-        intent.putExtra("content", note.content)
-        intent.putExtra("priority", note.priority)
-        intent.putExtra("image",note.url)
-        startActivity(intent)
+       communicator.passFromHomeToNote(note.title.toString(),note.content.toString(),note.priority.toString(),note.date.toString(),note.url.toString())
     }
 }
