@@ -1,6 +1,5 @@
 package com.example.noteapp.fragment
 
-import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
@@ -13,9 +12,8 @@ import android.widget.PopupMenu
 import android.widget.TextView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
-import com.example.noteapp.PassData
+import com.example.noteapp.Communicator.PassData
 import com.example.noteapp.R
-import com.example.noteapp.activity.MainActivity
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.storage.FirebaseStorage
@@ -86,6 +84,10 @@ class NoteDetail : Fragment() {
                     .transform(CenterCrop())
                     .into(Image)
             }
+            Image.setOnClickListener {
+
+                communicator.passFromNoteToImage(arguments?.getString("image").toString())
+            }
             getImageName(arguments?.getString("image").toString())
         }
         if(priority.text.toString() == "Critical"){
@@ -106,6 +108,10 @@ class NoteDetail : Fragment() {
     private fun implement(){
         backButton.setOnClickListener{
             activity?.onBackPressed()
+        }
+
+        Image.setOnClickListener {
+
         }
 
         editButton.setOnClickListener{

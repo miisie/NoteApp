@@ -25,4 +25,8 @@
     <style name="ThemeOverlay.button" parent="Theme.NoteApp">
             <item name="backgroundTint">#FFFF00</item>
     </style>
+    <style name="Widget.AppCompat.Light.PopupMenu.CustomBackground">
+        <item name="android:popupBackground">@drawable/rounded_corner</item>
+    </style>
+
 </resources>

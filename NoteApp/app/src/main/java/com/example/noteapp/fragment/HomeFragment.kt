@@ -9,10 +9,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
+import androidx.core.view.children
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
-import com.example.noteapp.PassData
+import com.example.noteapp.Communicator.PassData
 import com.example.noteapp.adapter.NoteAdapter
 import com.example.noteapp.R
 import com.example.noteapp.data.UserData
@@ -171,7 +172,7 @@ class HomeFragment : Fragment() {
     }
 
     private fun sortingTime() {
-        val sortedList = noteList.sortedWith(compareBy { it.date })
+        val sortedList = noteList.sortedWith(compareBy { it.date }).reversed()
         noteList.clear()
         noteAdapter.clear()
         noteList.addAll(sortedList)
@@ -192,13 +193,6 @@ class HomeFragment : Fragment() {
         noteAdapter.clear()
         noteList.addAll(sortedList)
         TempArr.addAll(noteList)
-    }
-
-    @SuppressLint("ServiceCast")
-    private fun closeSoftKeyboard(context: Context, v: View) {
-        val iMm = context.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
-        iMm.hideSoftInputFromWindow(v.windowToken, 0)
-        v.clearFocus()
     }
 
     private fun showNoteDetails(note: UserData) {

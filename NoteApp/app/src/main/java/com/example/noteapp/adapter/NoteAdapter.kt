@@ -59,6 +59,7 @@ class NoteAdapter(private var noteList: ArrayList<UserData>,
     inner class NoteViewHolder(itemView: View) :RecyclerView.ViewHolder(itemView){
         @SuppressLint("ResourceAsColor")
         fun bind(note: UserData){
+            // check priority color
             if(note.priority.toString().equals("Critical")){
                 itemView.setBackgroundColor(Color.parseColor("#000000"))
                 itemView.constraint_item.setBackgroundResource(R.drawable.background_item)
@@ -78,6 +79,15 @@ class NoteAdapter(private var noteList: ArrayList<UserData>,
                 itemView.text_title.text = note.title
                 itemView.text_date.text = formatDate(note.date.toString())
             }
+
+            //check if note has image
+            if(note.url.toString() == "null" ){
+                itemView.item_image.visibility = View.GONE
+            }
+            else {
+                itemView.item_image.visibility = View.VISIBLE
+            }
+
             itemView.setOnClickListener{
                 onItemClick.invoke(note)
             }

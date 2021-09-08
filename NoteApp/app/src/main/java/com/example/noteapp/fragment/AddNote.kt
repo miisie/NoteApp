@@ -222,6 +222,7 @@ class AddNote : Fragment() {
             title.setText(bundle?.getString("titlE").toString())
             content.setText(bundle?.getString("contenT").toString())
             priority.text = bundle?.getString("prioritY")
+            setPriorityColor(bundle?.getString("prioritY").toString())
             if(bundle?.getString("imagE").toString() != "null"){
                 bundle?.getString("imagE","").let{
                     Glide.with(this)
@@ -296,7 +297,7 @@ class AddNote : Fragment() {
             database.child(Title).setValue(userData).addOnSuccessListener {
                 title.text.clear()
                 content.text.clear()
-                priority.text = "Low"
+                priority.text = "Normal"
                 if(progressDialog.isShowing) progressDialog.dismiss()
 
             }.addOnFailureListener {
@@ -363,5 +364,17 @@ class AddNote : Fragment() {
     }
     private fun getImageName(imgUrl : String){
         imgName = imgUrl.substringAfter('F',imgUrl).subSequence(0,19).toString()
+    }
+    private fun setPriorityColor(prior: String){
+        if(prior == "Critical"){
+            priority.setTextColor(Color.parseColor("#FFC0CB"))
+        }
+        else if (prior == "High"){
+            priority.setTextColor(Color.parseColor("#FFD580"))
+        }
+
+        else {
+            priority.setTextColor(Color.parseColor("#90ee90"))
+        }
     }
 }
