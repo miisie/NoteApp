@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.PopupMenu
+import android.widget.ScrollView
 import android.widget.TextView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
@@ -32,6 +33,7 @@ class NoteDetail : Fragment() {
     private lateinit var database: DatabaseReference
     private lateinit var storageReference: StorageReference
     private lateinit var imgName: String
+    private var checkIfHasImage : Boolean = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -55,6 +57,7 @@ class NoteDetail : Fragment() {
         implement()
     }
     private fun init(){
+        checkIfHasImage = false
         communicator = activity as PassData
         title = view?.findViewById(R.id.title_data)!!
         content = view?.findViewById(R.id.content_data)!!
@@ -78,16 +81,17 @@ class NoteDetail : Fragment() {
         priority.text = arguments?.getString("priority").toString()
         date.text = arguments?.getString("date").toString()
         if (arguments?.getString("image").toString() != "null"){
+            checkIfHasImage = true
             arguments?.getString("image")?.let{
                 Glide.with(this)
                     .load(arguments?.getString("image").toString())
                     .transform(CenterCrop())
                     .into(Image)
             }
-            Image.setOnClickListener {
-
+           /* Image.setOnClickListener {
+                Log.d("check2","check2")
                 communicator.passFromNoteToImage(arguments?.getString("image").toString())
-            }
+            }*/
             getImageName(arguments?.getString("image").toString())
         }
         if(priority.text.toString() == "Critical"){
@@ -110,8 +114,10 @@ class NoteDetail : Fragment() {
             activity?.onBackPressed()
         }
 
-        Image.setOnClickListener {
-
+        if(checkIfHasImage){
+            Image.setOnClickListener {
+                communicator.passFromNoteToImage(arguments?.getString("image").toString())
+            }
         }
 
         editButton.setOnClickListener{

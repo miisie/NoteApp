@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.os.Bundle
+import android.os.Handler
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +14,7 @@ import androidx.core.view.children
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.noteapp.Communicator.PassData
 import com.example.noteapp.adapter.NoteAdapter
 import com.example.noteapp.R
@@ -35,6 +37,7 @@ class HomeFragment : Fragment() {
     private lateinit var noteAdapter: NoteAdapter
     private lateinit var TempArr: ArrayList<UserData>
     private lateinit var communicator: PassData
+    private lateinit var swipeRefresh: SwipeRefreshLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,6 +63,8 @@ class HomeFragment : Fragment() {
     }
 
     private fun init() {
+
+        swipeRefresh = view?.findViewById(R.id.swipe_refresh)!!
 
         communicator = activity as PassData
 
@@ -139,6 +144,19 @@ class HomeFragment : Fragment() {
             }
 
         })
+
+        swipeRefresh.setOnRefreshListener {
+            noteList.clear()
+            TempArr.clear()
+            noteAdapter.clear()
+            val handler: Handler
+            handler = Handler()
+            handler.postDelayed({
+                getNoteData()
+                swipeRefresh.isRefreshing = false
+            }, 500)
+        }
+
     }
 
     private fun getNoteData() {

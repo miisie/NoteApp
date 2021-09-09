@@ -1,15 +1,23 @@
 package com.example.noteapp.fragment
 
+import android.content.res.Resources
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Bundle
+
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.LinearLayout
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.example.noteapp.Communicator.PassData
 import com.example.noteapp.R
+import org.xmlpull.v1.XmlPullParser
+import java.net.HttpURLConnection
+import java.net.URL
 
 class FullImage : Fragment() {
     private lateinit var back: ImageView
@@ -36,7 +44,7 @@ class FullImage : Fragment() {
         }
         Glide.with(this)
             .load(arguments?.getString("IMAGE").toString())
-            .transform(CenterCrop())
             .into(image)
     }
+
 }
