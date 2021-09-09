@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Context
 import android.os.Bundle
 import android.os.Handler
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -98,8 +99,8 @@ class HomeFragment : Fragment() {
                 else if(it.title == "Priority") {
                     sortingPriority()
                 }
-                else {
-                    sortingTitle()
+                else{
+                   sortingTitle()
                 }
                 true
             }
@@ -175,7 +176,7 @@ class HomeFragment : Fragment() {
                         val note = userSnapshot.getValue(UserData::class.java)
                         noteList.add(note!!)
                     }
-                    val sortedList = noteList.sortedWith(compareBy({ it.priority }, { it.date }))
+                    val sortedList = noteList.sortedWith(compareBy{ it.date }).reversed().sortedWith(compareBy{ it.priority })
                     noteList.clear()
                     TempArr.clear()
                     noteAdapter.clear()
@@ -198,7 +199,7 @@ class HomeFragment : Fragment() {
     }
 
     private fun sortingPriority() {
-        val sortedList = noteList.sortedWith(compareBy({it.priority},{it.date}))
+        val sortedList = noteList.sortedWith(compareBy{ it.date }).reversed().sortedWith(compareBy{ it.priority })
         noteList.clear()
         noteAdapter.clear()
         noteList.addAll(sortedList)
