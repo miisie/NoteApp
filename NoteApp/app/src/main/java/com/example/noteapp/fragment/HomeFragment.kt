@@ -214,6 +214,6 @@ class HomeFragment : Fragment() {
     }
 
     private fun showNoteDetails(note: UserData) {
-       communicator.passFromHomeToNote(note.title.toString(),note.content.toString(),note.priority.toString(),note.date.toString(),note.url.toString())
+       communicator.passFromHomeToNote(note.title.toString(),note.content.toString(),note.priority.toString(),note.date.toString(),note.url.toString(),note.weblink.toString())
     }
 }

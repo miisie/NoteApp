@@ -1,6 +1,7 @@
 package com.example.noteapp.fragment
 
 import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -11,6 +12,7 @@ import android.widget.ImageView
 import android.widget.PopupMenu
 import android.widget.ScrollView
 import android.widget.TextView
+import androidx.browser.customtabs.CustomTabsIntent
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import com.example.noteapp.Communicator.PassData
@@ -28,11 +30,13 @@ class NoteDetail : Fragment() {
     private lateinit var backButton : ImageView
     private lateinit var Image : ImageView
     private lateinit var date : TextView
+    private lateinit var weblink : TextView
     private lateinit var editButton: ImageView
     private lateinit var communicator: PassData
     private lateinit var database: DatabaseReference
     private lateinit var storageReference: StorageReference
     private lateinit var imgName: String
+    private lateinit var UrlLink : String
     private var checkIfHasImage : Boolean = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,6 +63,9 @@ class NoteDetail : Fragment() {
     private fun init(){
         checkIfHasImage = false
         communicator = activity as PassData
+        imgName = "null"
+        UrlLink = "null"
+        weblink = view?.findViewById(R.id.weblink_data)!!
         title = view?.findViewById(R.id.title_data)!!
         content = view?.findViewById(R.id.content_data)!!
         priority = view?.findViewById(R.id.priority_data)!!
@@ -72,7 +79,6 @@ class NoteDetail : Fragment() {
         storageReference = FirebaseStorage
             .getInstance("gs://noteapp-b945c.appspot.com")
             .getReference("image")
-        imgName = "null"
     }
 
     private fun noteDetail(){
@@ -80,20 +86,26 @@ class NoteDetail : Fragment() {
         content.text = arguments?.getString("content").toString()
         priority.text = arguments?.getString("priority").toString()
         date.text = arguments?.getString("date").toString()
-        if (arguments?.getString("image").toString() != "null"){
+        UrlLink = arguments?.getString("weblink").toString()
+        if (arguments?.getString("image").toString() != "null") {
             checkIfHasImage = true
-            arguments?.getString("image")?.let{
+            arguments?.getString("image")?.let {
                 Glide.with(this)
                     .load(arguments?.getString("image").toString())
                     .transform(CenterCrop())
                     .into(Image)
             }
-           /* Image.setOnClickListener {
-                Log.d("check2","check2")
-                communicator.passFromNoteToImage(arguments?.getString("image").toString())
-            }*/
             getImageName(arguments?.getString("image").toString())
         }
+
+        if(UrlLink != "null"){
+            weblink.visibility = View.VISIBLE
+            weblink.text = arguments?.getString("weblink").toString()
+        }
+        else {
+            weblink.visibility = View.GONE
+        }
+
         if(priority.text.toString() == "Critical"){
             priority.setTextColor(Color.parseColor("#FFC0CB"))
         }
@@ -123,6 +135,13 @@ class NoteDetail : Fragment() {
         editButton.setOnClickListener{
             popUpEditDelete()
         }
+        if(UrlLink != null){
+            weblink.setOnClickListener {
+                val builder = CustomTabsIntent.Builder()
+                val customTabIntent = builder.build()
+                customTabIntent.launchUrl(requireContext(), Uri.parse(weblink.text.toString()))
+            }
+        }
     }
 
     private fun popUpEditDelete(){
@@ -130,7 +149,7 @@ class NoteDetail : Fragment() {
         popupMenu.inflate(R.menu.pop_up_3dot)
         popupMenu.setOnMenuItemClickListener {
             if(it.title == "Edit"){
-                communicator.passFromNoteToEdit(title.text.toString(),content.text.toString(),priority.text.toString(),date.text.toString(),arguments?.getString("image").toString())
+                communicator.passFromNoteToEdit(title.text.toString(),content.text.toString(),priority.text.toString(),date.text.toString(),arguments?.getString("image").toString(),UrlLink)
             }
             else{
                 deleteData(title.text.toString(),imgName)

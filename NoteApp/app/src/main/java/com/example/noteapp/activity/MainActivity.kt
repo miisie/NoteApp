@@ -48,7 +48,8 @@ class MainActivity : AppCompatActivity(), PassData {
         content: String,
         priority: String,
         date: String,
-        image: String
+        image: String,
+        webLink: String
     ) {
         val noteDetail = NoteDetail()
         val data = Bundle().apply {
@@ -57,6 +58,7 @@ class MainActivity : AppCompatActivity(), PassData {
             putString("priority",priority)
             putString("date",date)
             putString("image",image)
+            putString("weblink",webLink)
         }
         noteDetail.arguments = data
         addFragmentToActivity(supportFragmentManager, noteDetail, R.id.frame_layout_id)
@@ -67,7 +69,8 @@ class MainActivity : AppCompatActivity(), PassData {
         content: String,
         priority: String,
         date: String,
-        image: String
+        image: String,
+        webLink: String
     ) {
         val addNote = AddNote()
         val data = Bundle().apply {
@@ -76,6 +79,7 @@ class MainActivity : AppCompatActivity(), PassData {
             putString("prioritY",priority)
             putString("datE",date)
             putString("imagE",image)
+            putString("weblinK",webLink)
         }
         addNote.arguments = data
         addFragmentToActivity(supportFragmentManager, addNote, R.id.frame_layout_id)

@@ -11,6 +11,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.util.Patterns
 
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -18,6 +19,8 @@ import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.browser.customtabs.CustomTabsIntent
+import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
 import com.example.noteapp.R
@@ -42,12 +45,20 @@ class AddNote : Fragment() {
     private lateinit var backBtn: ImageView
     private lateinit var priority: TextView
     private lateinit var imageBtn: ImageView
+    private lateinit var linkBtn: ImageView
     private lateinit var imageNote: ImageView
     private lateinit var imageUri : Uri
     private lateinit var Url : String
     private lateinit var imgName: String
     private lateinit var savedImgName: String
     private var CHECK : Boolean = false
+    private lateinit var layoutLink : LinearLayout
+    private lateinit var webUrl : EditText
+    private lateinit var btnOk : TextView
+    private lateinit var btnCancel : TextView
+    private lateinit var contentUrl : TextView
+    private lateinit var webLink : String
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -101,9 +112,34 @@ class AddNote : Fragment() {
         // add image
         imageBtn.setOnClickListener {
             chooseUploadOrDelete()
+
         }
 
+        linkBtn.setOnClickListener {
+            layoutLink.visibility = View.VISIBLE
+            contentUrl.visibility= View.GONE
+            webUrl.visibility = View.VISIBLE
+            btnOk.visibility = View.VISIBLE
+            btnCancel.visibility = View.VISIBLE
+        }
 
+        btnOk.setOnClickListener {
+            if(webUrl.text.toString().trim().isNotEmpty() && webUrl.text.toString().trim().isNotBlank()){
+                checkWebUrl()
+            }
+            else{
+                Toast.makeText(context,"Web link is required",Toast.LENGTH_SHORT).show()
+            }
+        }
+        btnCancel.setOnClickListener {
+            layoutLink.visibility = View.GONE
+            webLink = "null"
+        }
+        contentUrl.setOnClickListener {
+            val builder = CustomTabsIntent.Builder()
+            val customTabIntent = builder.build()
+            customTabIntent.launchUrl(requireContext(), Uri.parse(contentUrl.text.toString()))
+        }
     }
 
     private fun init() {
@@ -112,6 +148,13 @@ class AddNote : Fragment() {
         CHECK = false
         imgName = "null"
         savedImgName = "null"
+        webLink = "null"
+        contentUrl = view?.findViewById(R.id.content_url)!!
+        btnOk = view?.findViewById(R.id.Ok)!!
+        btnCancel = view?.findViewById(R.id.Cancel)!!
+        webUrl = view?.findViewById(R.id.add_link)!!
+        layoutLink = view?.findViewById(R.id.link)!!
+        linkBtn = view?.findViewById(R.id.add_link_image)!!
         submitbtn = view?.findViewById(R.id.submitbtn)!!
         date = view?.findViewById(R.id.date)!!
         title = view?.findViewById(R.id.title)!!
@@ -231,19 +274,25 @@ class AddNote : Fragment() {
                 }
                 getImageName(bundle.getString("imagE").toString())
             }
+            if(bundle?.getString("weblinK").toString() != "null"){
+                layoutLink.visibility = View.GONE
+                contentUrl.visibility = View.VISIBLE
+                webUrl.setText(bundle?.getString("weblinK").toString())
+                contentUrl.text = bundle?.getString("weblinK").toString()
+            }
         }
     }
 
     private fun checkNewSaveOrEditSave(){
         if(CHECK == false){
-            uploadImg(title.text.toString(),content.text.toString(),priority.text.toString(),date.text.toString())
+            uploadImg(title.text.toString(),content.text.toString(),priority.text.toString(),date.text.toString(),webLink)
         }
         else{
-            editData(title.text.toString(),content.text.toString(),priority.text.toString(),date.text.toString(),savedImgName)
+            editData(title.text.toString(),content.text.toString(),priority.text.toString(),date.text.toString(),savedImgName,webLink)
         }
     }
 
-    private fun editData(title: String, content :String, priority : String, date: String, savedImgName :String){
+    private fun editData(title: String, content :String, priority : String, date: String, savedImgName :String,Link :String){
         val bundle : Bundle? = arguments
         database.child(bundle?.getString("titlE").toString()).removeValue()
         if (imageUri == Uri.EMPTY && imgName != "null"){
@@ -252,7 +301,7 @@ class AddNote : Fragment() {
         if (savedImgName != "null"){
             storageReference.child(savedImgName).delete()
         }
-        uploadImg(title, content, priority, date)
+        uploadImg(title, content, priority, date, Link)
     }
 
     private fun pickImageFromGallery() {
@@ -286,14 +335,14 @@ class AddNote : Fragment() {
     }
 
     @SuppressLint("NewApi")
-    private fun uploadImg(Title: String, Content :String, Priority : String, Date: String){
+    private fun uploadImg(Title: String, Content :String, Priority : String, Date: String, webLink : String){
         val progressDialog = ProgressDialog(this.context)
         progressDialog.setMessage("Uploading..")
         progressDialog.setCancelable(false)
         progressDialog.show()
 
         if(imageUri == Uri.EMPTY){
-            val userData = UserData(Date,Title,Content,Priority,Url)
+            val userData = UserData(Date,Title,Content,Priority,Url,webLink)
             database.child(Title).setValue(userData).addOnSuccessListener {
                 title.text.clear()
                 content.text.clear()
@@ -313,7 +362,7 @@ class AddNote : Fragment() {
                 imageNote.setImageURI(null)
                 if(progressDialog.isShowing) progressDialog.dismiss()
                 it.storage.downloadUrl.addOnSuccessListener {
-                    val userData = UserData(Date,Title,Content,Priority,it.toString())
+                    val userData = UserData(Date,Title,Content,Priority,it.toString(),webLink)
                     database.child(title.text.toString()).setValue(userData).addOnSuccessListener {
                         title.text.clear()
                         content.text.clear()
@@ -337,29 +386,36 @@ class AddNote : Fragment() {
     }
 
     private fun setPrior(){
-        val popupMenu = PopupMenu(requireContext(),priority)
-        popupMenu.menu.add(Menu.NONE , 0, 0, "Critical")
-        popupMenu.menu.add(Menu.NONE , 1, 1, "High")
-        popupMenu.menu.add(Menu.NONE , 2, 2, "Normal")
-        popupMenu.setOnMenuItemClickListener {
-            val id = it.itemId
-            if(id == 0){
-                priority.text = "Critical"
-                priority.setTextColor(Color.parseColor("#FFC0CB"))
-            }
-            else if (id == 1){
-                priority.text = "High"
-                priority.setTextColor(Color.parseColor("#FFD580"))
+        priority.setOnClickListener{
+            val popupMenu = PopupMenu(requireContext(),priority)
+            popupMenu.inflate(R.menu.pop_up_priority)
+            popupMenu.setOnMenuItemClickListener {
+                if(it.title == "Critical") {
+                    priority.text = "Critical"
+                    priority.setTextColor(Color.parseColor("#FFC0CB"))
+                }
+                else if(it.title == "High") {
+                    priority.text = "High"
+                    priority.setTextColor(Color.parseColor("#FFD580"))
+                }
+                else {
+                    priority.text = "Normal"
+                    priority.setTextColor(Color.parseColor("#90ee90"))
+                }
+                true
             }
 
-            else if (id == 2){
-                priority.text = "Normal"
-                priority.setTextColor(Color.parseColor("#90ee90"))
+            try {
+                val fieldMPopup = PopupMenu::class.java.getDeclaredField("mPopup")
+                fieldMPopup.isAccessible = true
+                val mPopup = fieldMPopup.get(popupMenu)
+                mPopup.javaClass.getDeclaredMethod("setForceShowIcon", Boolean::class.java).invoke(mPopup,true)
+            }catch(e: Exception){
+                Log.e("Main","Error showing menu icon",e)
             }
-            false
-        }
-        priority.setOnClickListener {
-            popupMenu.show()
+            finally{
+                popupMenu.show()
+            }
         }
     }
     private fun getImageName(imgUrl : String){
@@ -375,6 +431,19 @@ class AddNote : Fragment() {
 
         else {
             priority.setTextColor(Color.parseColor("#90ee90"))
+        }
+    }
+
+
+    private fun checkWebUrl(){
+        if(Patterns.WEB_URL.matcher(webUrl.text.toString()).matches()){
+            layoutLink.visibility = View.GONE
+            webLink = webUrl.text.toString()
+            contentUrl.visibility = View.VISIBLE
+            contentUrl.text = webUrl.text.toString()
+        }
+        else{
+            webUrl.error = "Invalid  Web Link"
         }
     }
 }

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:title="Critical"
+        android:icon="@drawable/tiny_pink"
+        android:id="@+id/Critical">
+    </item>
+
+    <item
+        android:title="High"
+        android:icon="@drawable/tiny_orange"
+        android:id="@+id/High">
+    </item>
+
+    <item
+        android:title="Normal"
+        android:icon="@drawable/tiny_green"
+        android:id="@+id/Normal">
+    </item>
+</menu>
